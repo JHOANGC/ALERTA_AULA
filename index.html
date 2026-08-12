@@ -318,6 +318,26 @@
     }
   }
  
+  // Igual que arriba, pero registra este celular como Maestro (para avisarle cuando atiendan su alerta)
+  async function activarPushMaestro(){
+    if(pushActivado || !messaging) return;
+    try{
+      const permiso = await Notification.requestPermission();
+      if(permiso !== "granted"){
+        setSyncStatus("error", "Notificaciones bloqueadas por el navegador");
+        return;
+      }
+      const swReg = await navigator.serviceWorker.ready;
+      const token = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
+      if(token){
+        await firebase.database().ref("tokensMaestro/" + token).set(true);
+        pushActivado = true;
+      }
+    }catch(e){
+      console.error("No se pudo activar push:", e);
+    }
+  }
+ 
   const NUM_AULAS = 6;
   let aulas = Array.from({length: NUM_AULAS}, (_, i) => ({
     id: i + 1,
@@ -438,6 +458,7 @@
       modoActual = tab.dataset.role;
       renderAll();
       if(modoActual === "auxiliar") activarPushAuxiliar();
+      if(modoActual === "maestro") activarPushMaestro();
     });
   });
  
@@ -566,6 +587,8 @@
  
   renderAll();
   iniciarSincronizacion();
+  if(modoActual === "maestro") activarPushMaestro();
 </script>
 </body>
 </html>
+ 
