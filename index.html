@@ -237,6 +237,7 @@
     <div class="eyebrow">Sistema interno · Prototipo</div>
     <h1>Alerta Aula</h1>
     <div class="sync-status" id="syncStatus">Conectando...</div>
+    <div class="hint" style="margin-top:4px; margin-bottom:0;">La pantalla se mantiene encendida mientras la app está abierta.</div>
   </header>
 
   <div class="tabs">
@@ -295,6 +296,7 @@
     activa: false
   }));
   let soundOn = true;
+  let modoActual = "maestro";
 
   function setSyncStatus(estado, texto){
     const el = document.getElementById("syncStatus");
@@ -318,7 +320,7 @@
         });
         aulas = datos;
         renderAll();
-        if(huboNuevaAlerta) sonarSirena();
+        if(huboNuevaAlerta && modoActual === "auxiliar") sonarSirena();
       } else {
         // Primera vez: no existe nada aun, se crea el estado inicial
         dbRef.set(aulas);
@@ -405,6 +407,7 @@
       document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
       tab.classList.add("active");
       document.getElementById("view-" + tab.dataset.role).classList.add("active");
+      modoActual = tab.dataset.role;
       renderAll();
     });
   });
@@ -497,6 +500,25 @@
   if("serviceWorker" in navigator){
     navigator.serviceWorker.register("sw.js").catch(() => {});
   }
+
+  // Evita que la pantalla se apague sola mientras la app esta abierta
+  let wakeLock = null;
+  async function mantenerPantallaEncendida(){
+    try{
+      if("wakeLock" in navigator){
+        wakeLock = await navigator.wakeLock.request("screen");
+      }
+    }catch(e){
+      // Algunos navegadores/celulares no lo permiten, no pasa nada, se ignora
+    }
+  }
+  mantenerPantallaEncendida();
+  // Si el celular vuelve a estar visible (se bloqueo brevemente), se reactiva
+  document.addEventListener("visibilitychange", () => {
+    if(document.visibilityState === "visible"){
+      mantenerPantallaEncendida();
+    }
+  });
 
   // Boton de instalar app
   let promptInstalacion = null;
