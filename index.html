@@ -8,6 +8,7 @@
 <title>Alerta Aula</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
 <style>
   :root{
     --bg: #12161d;
@@ -281,13 +282,40 @@
   };
 
   let dbRef = null;
+  let messaging = null;
   let firebaseListo = false;
   try {
     firebase.initializeApp(firebaseConfig);
     dbRef = firebase.database().ref("aulas");
+    if("Notification" in window){
+      messaging = firebase.messaging();
+    }
     firebaseListo = true;
   } catch (e) {
     console.error("Firebase no configurado todavia:", e);
+  }
+
+  const VAPID_KEY = "BJr-sp3CLEwt644NG95ZvoxcqdiHPkIk8cOSAMeU6upZ05ghOaWj9HVVUkjgji9EYrBYBNmYho5Hr8S_G_YgXgA";
+  let pushActivado = false;
+
+  // Pide permiso de notificaciones y registra este celular como Auxiliar receptor de push
+  async function activarPushAuxiliar(){
+    if(pushActivado || !messaging) return;
+    try{
+      const permiso = await Notification.requestPermission();
+      if(permiso !== "granted"){
+        setSyncStatus("error", "Notificaciones bloqueadas por el navegador");
+        return;
+      }
+      const swReg = await navigator.serviceWorker.ready;
+      const token = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
+      if(token){
+        await firebase.database().ref("tokensAuxiliar/" + token).set(true);
+        pushActivado = true;
+      }
+    }catch(e){
+      console.error("No se pudo activar push:", e);
+    }
   }
 
   const NUM_AULAS = 6;
@@ -409,6 +437,7 @@
       document.getElementById("view-" + tab.dataset.role).classList.add("active");
       modoActual = tab.dataset.role;
       renderAll();
+      if(modoActual === "auxiliar") activarPushAuxiliar();
     });
   });
 
