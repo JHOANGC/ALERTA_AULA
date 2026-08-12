@@ -34,7 +34,7 @@
     padding: 24px 16px 60px;
   }
   .wrap{ width:100%; max-width: 520px; }
-
+ 
   header{
     display:flex;
     flex-direction:column;
@@ -67,7 +67,7 @@
   }
   .sync-status.online .dot2{ background: var(--ok); }
   .sync-status.error .dot2{ background: var(--alert); }
-
+ 
   .tabs{
     display:flex;
     background: var(--surface);
@@ -92,17 +92,17 @@
     background: var(--text);
     color: var(--bg);
   }
-
+ 
   .view{ display:none; }
   .view.active{ display:block; }
-
+ 
   .hint{
     color: var(--text-dim);
     font-size: 13px;
     margin-bottom: 18px;
     line-height:1.5;
   }
-
+ 
   /* MAESTRO: grid de aulas */
   .grid{
     display:grid;
@@ -151,7 +151,7 @@
     0%{ opacity: .9; transform: scale(1); }
     100%{ opacity: 0; transform: scale(1.28); }
   }
-
+ 
   .banner{
     margin-top: 20px;
     padding: 14px 16px;
@@ -166,7 +166,7 @@
   .banner.alert{ background: var(--alert-glow); color: #ffb4ae; border:1px solid var(--alert); }
   .banner.ok{ background: var(--ok-glow); color: #9be8c1; border:1px solid var(--ok); }
   .dot{ width:8px; height:8px; border-radius:50%; background:currentColor; flex-shrink:0; }
-
+ 
   /* AUXILIAR: lista */
   .list{ display:flex; flex-direction:column; gap: 10px; }
   .row{
@@ -217,7 +217,7 @@
     padding: 4px 10px;
     border-radius: 6px;
   }
-
+ 
   .sound-toggle{
     margin-top: 22px;
     display:flex;
@@ -233,39 +233,39 @@
 </head>
 <body>
 <div class="wrap">
-
+ 
   <header>
     <div class="eyebrow">Sistema interno · Prototipo</div>
     <h1>Alerta Aula</h1>
     <div class="sync-status" id="syncStatus">Conectando...</div>
     <div class="hint" style="margin-top:4px; margin-bottom:0;">La pantalla se mantiene encendida mientras la app está abierta.</div>
   </header>
-
+ 
   <div class="tabs">
     <div class="tab active" data-role="maestro">Modo Maestro</div>
     <div class="tab" data-role="auxiliar">Modo Auxiliar</div>
   </div>
-
+ 
   <!-- VISTA MAESTRO -->
   <section class="view active" id="view-maestro">
     <p class="hint">Toca tu aula para enviar la alerta al auxiliar.</p>
     <div class="grid" id="grid-maestro"></div>
     <div class="banner" id="banner-maestro"></div>
   </section>
-
+ 
   <!-- VISTA AUXILIAR -->
   <section class="view" id="view-auxiliar">
     <p class="hint">Aulas con alerta activa aparecen resaltadas. Marca "Atendida" al llegar.</p>
     <div class="list" id="list-auxiliar"></div>
   </section>
-
+ 
   <div class="sound-toggle" id="soundToggle">🔊 Sonido: activado</div>
   <div class="sound-toggle" id="testSoundBtn">🔔 Probar sonido</div>
   <div class="sound-toggle" id="resetBtn" style="margin-top:8px;">↺ Reiniciar todas las alertas</div>
   <button id="installBtn" style="display:none; margin-top:16px; width:100%; padding:14px; border-radius:12px; border:none; background:var(--ok); color:#0d1a13; font-weight:800; font-size:14px; cursor:pointer;">⬇ Instalar como app</button>
-
+ 
 </div>
-
+ 
 <script>
   // ============================================================
   // CONFIGURACION DE FIREBASE — REEMPLAZA ESTOS VALORES
@@ -280,7 +280,7 @@
     messagingSenderId: "474920163662",
     appId: "1:474920163662:web:7a324dd5a4ba4a33c3661f"
   };
-
+ 
   let dbRef = null;
   let messaging = null;
   let firebaseListo = false;
@@ -294,10 +294,10 @@
   } catch (e) {
     console.error("Firebase no configurado todavia:", e);
   }
-
+ 
   const VAPID_KEY = "BJr-sp3CLEwt644NG95ZvoxcqdiHPkIk8cOSAMeU6upZ05ghOaWj9HVVUkjgji9EYrBYBNmYho5Hr8S_G_YgXgA";
   let pushActivado = false;
-
+ 
   // Pide permiso de notificaciones y registra este celular como Auxiliar receptor de push
   async function activarPushAuxiliar(){
     if(pushActivado || !messaging) return;
@@ -317,7 +317,7 @@
       console.error("No se pudo activar push:", e);
     }
   }
-
+ 
   const NUM_AULAS = 6;
   let aulas = Array.from({length: NUM_AULAS}, (_, i) => ({
     id: i + 1,
@@ -325,13 +325,13 @@
   }));
   let soundOn = true;
   let modoActual = "maestro";
-
+ 
   function setSyncStatus(estado, texto){
     const el = document.getElementById("syncStatus");
     el.className = "sync-status" + (estado ? " " + estado : "");
     el.innerHTML = '<span class="dot2"></span>' + texto;
   }
-
+ 
   // Escucha cambios en tiempo real (no hace falta refrescar ni esperar)
   function iniciarSincronizacion(){
     if(!firebaseListo){
@@ -358,7 +358,7 @@
       setSyncStatus("error", "Sin conexion, reintentando...");
     });
   }
-
+ 
   async function guardarEstado(){
     if(!firebaseListo) return;
     try{
@@ -367,7 +367,7 @@
       setSyncStatus("error", "No se pudo enviar, revisa tu conexion");
     }
   }
-
+ 
   // --- Sonido: un solo contexto de audio reutilizable ---
   // Los navegadores bloquean el sonido automatico si no hay un toque del usuario antes.
   // Por eso creamos el contexto UNA vez y lo desbloqueamos con el primer toque en la pantalla.
@@ -385,7 +385,7 @@
   ["click", "touchstart"].forEach(evento => {
     document.addEventListener(evento, () => { obtenerAudioCtx(); }, { once: true });
   });
-
+ 
   function beep(freq = 880, dur = 0.15){
     if(!soundOn) return;
     try{
@@ -401,7 +401,7 @@
       osc.stop(ctx.currentTime + dur);
     }catch(e){}
   }
-
+ 
   // Sonido de sirena, mas fuerte y notorio, para cuando llega una alerta nueva
   function sonarSirena(){
     if(!soundOn) return;
@@ -427,7 +427,7 @@
       osc.stop(now + duracion);
     }catch(e){}
   }
-
+ 
   // --- Tabs ---
   document.querySelectorAll(".tab").forEach(tab => {
     tab.addEventListener("click", () => {
@@ -440,12 +440,12 @@
       if(modoActual === "auxiliar") activarPushAuxiliar();
     });
   });
-
+ 
   document.getElementById("soundToggle").addEventListener("click", (e) => {
     soundOn = !soundOn;
     e.target.textContent = soundOn ? "🔊 Sonido: activado" : "🔇 Sonido: desactivado";
   });
-
+ 
   async function enviarAlerta(id){
     const aula = aulas.find(a => a.id === id);
     if(aula.activa) return;
@@ -456,7 +456,7 @@
     renderAll();
     await guardarEstado();
   }
-
+ 
   async function atenderAlerta(id){
     const aula = aulas.find(a => a.id === id);
     aula.activa = false;
@@ -464,7 +464,7 @@
     renderAll();
     await guardarEstado();
   }
-
+ 
   function renderMaestro(){
     const grid = document.getElementById("grid-maestro");
     grid.innerHTML = "";
@@ -480,7 +480,7 @@
       grid.appendChild(btn);
     });
   }
-
+ 
   function renderAuxiliar(){
     const list = document.getElementById("list-auxiliar");
     list.innerHTML = "";
@@ -509,27 +509,27 @@
       list.appendChild(row);
     });
   }
-
+ 
   function renderAll(){
     renderMaestro();
     renderAuxiliar();
   }
-
+ 
   document.getElementById("testSoundBtn").addEventListener("click", () => {
     sonarSirena();
   });
-
+ 
   document.getElementById("resetBtn").addEventListener("click", async () => {
     aulas.forEach(a => a.activa = false);
     renderAll();
     await guardarEstado();
   });
-
+ 
   // Registrar el service worker (necesario para poder instalar la app)
   if("serviceWorker" in navigator){
     navigator.serviceWorker.register("sw.js").catch(() => {});
   }
-
+ 
   // Evita que la pantalla se apague sola mientras la app esta abierta
   let wakeLock = null;
   async function mantenerPantallaEncendida(){
@@ -548,7 +548,7 @@
       mantenerPantallaEncendida();
     }
   });
-
+ 
   // Boton de instalar app
   let promptInstalacion = null;
   window.addEventListener("beforeinstallprompt", (e) => {
@@ -563,7 +563,7 @@
     promptInstalacion = null;
     document.getElementById("installBtn").style.display = "none";
   });
-
+ 
   renderAll();
   iniciarSincronizacion();
 </script>
