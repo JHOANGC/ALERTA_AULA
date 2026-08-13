@@ -21,7 +21,8 @@ messaging.onBackgroundMessage((payload) => {
     body: cuerpo,
     icon: "icon-192.png",
     vibrate: [250, 100, 250, 100, 250],
-    tag: "alerta-aula"
+    tag: "alerta-aula",
+    renotify: true
   });
 });
  
