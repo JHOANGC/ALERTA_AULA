@@ -15,8 +15,11 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
  
 messaging.onBackgroundMessage((payload) => {
-  const titulo = (payload.notification && payload.notification.title) || "Alerta Aula";
-  const cuerpo = (payload.notification && payload.notification.body) || "Hay una alerta activa";
+  // Ahora el backend manda "data" en vez de "notification", asi que
+  // leemos de payload.data para que este handler SIEMPRE se ejecute
+  // (con "notification" el sistema a veces la mostraba solo el, sin pasar por aqui).
+  const titulo = (payload.data && payload.data.title) || "Alerta Aula";
+  const cuerpo = (payload.data && payload.data.body) || "Hay una alerta activa";
   self.registration.showNotification(titulo, {
     body: cuerpo,
     icon: "icon-192.png",
@@ -44,3 +47,4 @@ self.addEventListener("fetch", (event) => {
     caches.match(event.request).then((res) => res || fetch(event.request))
   );
 });
+ 
